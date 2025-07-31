@@ -1,4 +1,4 @@
-# 🧮 Forall-Exist Verification & Fair Allocation
+*Forall-Exist Statements & Fair Allocation problems*
 
 This project serves **two purposes**:
 
