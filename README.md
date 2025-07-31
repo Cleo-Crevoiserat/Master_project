@@ -16,7 +16,7 @@ This project has **two different purposes**:
 
 ---
 # How to use it
- 🧪Case 1: Forall–Exist Verification
+ Case 1: Forall–Exist Verification
 
 In the `main()`:
 1. Set `prob = 0`
