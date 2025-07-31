@@ -15,8 +15,8 @@ This project has **two different purposes**:
 - C++ compiler (e.g., `g++`, `clang++`)
 
 ---
-
- 🧪 Usage – Case 1: Forall–Exist Verification
+# How to use it
+ 🧪Case 1: Forall–Exist Verification
 
 In the `main()`:
 1. Set `prob = 0`
