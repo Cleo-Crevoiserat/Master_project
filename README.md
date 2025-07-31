@@ -21,8 +21,8 @@ This project has **two different purposes**:
 In the `main()`:
 1. Set `prob = 0`
 2. Define matrix dimensions `m`, `n`
-3. Initialize matrix $W$ using Eigen.
- (e.g ![Matrice exemple](matrice_exemple.png))
+3. Initialize matrix $W$ using Eigen.  
+ example:  ![Matrice exemple](matrice_exemple.png)
 ```cpp
 W << 1, 2,
      3, 6,
