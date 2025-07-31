@@ -123,7 +123,7 @@ vector<Eigen::VectorXd> gen_C_Alloc(Eigen::MatrixXd& W, Eigen::VectorXd& N, int 
     vector<Eigen::VectorXd> C;
     vector<Eigen::VectorXd> Coord;
     for (int i = 0; i < m_1; ++i) {
-        Coord.push_back(Eigen::VectorXd::Zero(N(i)));
+        Coord.push_back(Eigen::VectorXd::Ones(N(i)));
     }
     do {
         int pos = 0;
