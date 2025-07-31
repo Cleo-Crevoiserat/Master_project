@@ -5,7 +5,7 @@ This project has **two different purposes**:
 1. **Solve a forall exist statement**: Given a matrix $( W \in \mathbb{Z}^{m 	\times n} )$ and a polyhedron $( Q \subseteq \mathbb{R}^m )$, decide the validity of the statement:
    $$\forall b \in Q \cap \mathbb{Z}^m,  \exists x \in \mathbb{Z}^n 	text{ such that } Wx \leq b$$
 
-2. **Fair Allocation**: For $ n$ agents and $ m $ object categories, determine whether a **fair allocation** exists, and if so, compute it.
+2. **Solve a Fair Allocation problem**: For $ n$ agents and $ m $ object categories, determine whether a **fair allocation** exists, and if so, compute it.
 
 ---
 
