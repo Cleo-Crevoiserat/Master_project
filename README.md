@@ -23,11 +23,11 @@ In the `main()`:
 2. Define matrix dimensions `m`, `n`
 3. Initialize matrix $W$ using Eigen:
    For example : for the matrix
-   $\begin{pmatrix}
+   $$\begin{pmatrix}
       1 & 2 //
       3 & 6//
       5 & 7 //
-   \end{pmatrix}$
+   \end{pmatrix}$$
    you need to enter :
 ```cpp
 W << 1, 2,
