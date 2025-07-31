@@ -1,8 +1,8 @@
-*Forall-Exist Statements & Fair Allocation problems*
+# Forall-Exist Statements & Fair Allocation problems
 
-This project serves **two purposes**:
+This project has **two different purposes**:
 
-1. **Logical Verification**: Given a matrix \( W \in \mathbb{Z}^{m 	imes n} \) and a polyhedron \( Q \subseteq \mathbb{R}^m \), verify whether:
+1. **Solve a forall exist statement**: Given a matrix $( W \in \mathbb{Z}^{m 	\times n} )$ and a polyhedron \( Q \subseteq \mathbb{R}^m \), verify whether:
    \[
    orall b \in Q \cap \mathbb{Z}^m, \ \exists x \in \mathbb{Z}^n 	ext{ such that } Wx \leq b
    \]
