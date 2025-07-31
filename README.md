@@ -23,11 +23,7 @@ In the `main()`:
 2. Define matrix dimensions `m`, `n`
 3. Initialize matrix $W$ using Eigen:
    For example : for the matrix
-   $$\begin{pmatrix}
-      1 & 2 //
-      3 & 6//
-      5 & 7 //
-   \end{pmatrix}$$
+   ![Matrice exemple](images/matrix.png)
    you need to enter :
 ```cpp
 W << 1, 2,
@@ -47,7 +43,7 @@ Q = {
 
 Each row corresponds to the inequality:
 
-$ a_1 x_1 + a_2 x_2 + \dots + a_n x_n + c \geq 0 $
+$a_1 x_1 + a_2 x_2 + \dots + a_n x_n + c \geq 0$
 
 ---
 
