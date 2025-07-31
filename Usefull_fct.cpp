@@ -105,7 +105,7 @@ bool coord_Spe_C_Alloc(vector<Eigen::VectorXd>& coord, int direction_1, int dire
     if (coord[direction_1][direction_2] == n) {
         if (direction_2 == 0) {
             for (int i = 0; i < N[direction_1]; ++i) {
-                coord[direction_1][i] = 0;
+                coord[direction_1][i] = 1;
             }
             //cout << "on est ici";
             return coord_Spe_C_Alloc(coord, direction_1 - 1, N[direction_1-1]-1, N, m, n);
