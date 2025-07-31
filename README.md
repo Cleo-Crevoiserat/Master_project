@@ -3,35 +3,39 @@
 This project has **two different purposes**:
 
 1. **Solve a forall exist statement**: Given a matrix $( W \in \mathbb{Z}^{m 	\times n} )$ and a polyhedron $( Q \subseteq \mathbb{R}^m )$, decide the validity of the statement:
-   \[
-   \forall b \in Q \cap \mathbb{Z}^m,  \exists x \in \mathbb{Z}^n 	text{ such that } Wx \leq b
-   \]
+   $$\forall b \in Q \cap \mathbb{Z}^m,  \exists x \in \mathbb{Z}^n 	text{ such that } Wx \leq b$$
 
-2. **Fair Allocation**: For \( n \) agents and \( m \) object types, determine whether a **fair allocation** exists, and if so, compute it.
+2. **Fair Allocation**: For $ n$ agents and $ m $ object categories, determine whether a **fair allocation** exists, and if so, compute it.
 
 ---
 
-## ⚙️ Requirements
+## Requirements
 
 - **Gurobi** optimizer (make sure it's installed and accessible with a valid license)
 - C++ compiler (e.g., `g++`, `clang++`)
 
 ---
 
-## 🧪 Usage – Case 1: Forall–Exist Verification
+ 🧪 Usage – Case 1: Forall–Exist Verification
 
-In your `main()`:
+In the `main()`:
 1. Set `prob = 0`
 2. Define matrix dimensions `m`, `n`
-3. Initialize matrix \( W \) using Eigen:
-
+3. Initialize matrix $ W $ using Eigen:
+   For example : for the matrix
+   \begin{pmatrix}
+      1 & 2 //
+      3 & 6//
+      5 & 7 //
+   \end{pmatrix}
+   you need to enter :
 ```cpp
 W << 1, 2,
      3, 6,
      5, 7;
 ```
 
-4. Define polyhedron \( Q \) as a list of inequalities in the form:
+4. Define polyhedron  $Q$ as a list of inequalities in the form:
 
 ```
 Q = {
@@ -43,19 +47,17 @@ Q = {
 
 Each row corresponds to the inequality:
 
-\[
-a_1 x_1 + a_2 x_2 + \dots + a_n x_n + c \geq 0
-\]
+$ a_1 x_1 + a_2 x_2 + \dots + a_n x_n + c \geq 0 $
 
 ---
 
-## 🎯 Usage – Case 2: Fair Allocation
+## Case 2: Fair Allocation
 
 Set up the problem with:
 - `m`: number of object types
 - `n`: number of agents
-- `N`: vector indicating how many objects of each type (e.g., `N << 1, 2, 3, 4, 5;`)
-- Utility function for each agent: a `vector<int>` of length `m` (e.g., `{3, 2, 0, 1, 4}`)
+- `N`: vector indicating how many objects of each category (e.g., `N << 1, 2, 3, 4, 5;` if you have one item for the first category, two for the second one and so on.)
+- Utility function for each agent: a `vector<int>` of length `m` (e.g., `{3, 2, 0, 1, 4}` means that $U_{a}(1)=3$, $U_{a}(2)=2$...)
 
 Each agent's utility is defined per object type.
 
