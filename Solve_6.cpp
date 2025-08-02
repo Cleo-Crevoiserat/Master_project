@@ -554,12 +554,8 @@ bool bypass_2D(const vector<int>& starting_point, int min_y, const vector<vector
     actual_point = starting_point;
     if (not (((actual_point[axes[1]] == K[axes[1]]) and (not max_K[axes[1]])) or ((actual_point[axes[1]] == K[axes[1]] - 1) and (max_K[axes[1]])))) {//if we are not already at the top
         do {
-            cout << endl;
             nb_iter += 1;
             vector<bool> T = bypass_2D_up(actual_point, min_y, points, C, K, max_K, direction, env, Q, m, result,axes);
-            for (auto a : actual_point) {
-                cout << a << " ";
-            }
             step = T[0];
             if (T[2] == false) {// we have found a counter exemple
                 return false;
@@ -574,6 +570,9 @@ bool bypass_2D(const vector<int>& starting_point, int min_y, const vector<vector
             }
             if (T[1] == false) {
                 if (((actual_point[axes[0]]== K[axes[0]]) and (not max_K[axes[0]])) or ((actual_point[axes[0]] == K[axes[0]] - 1) and (max_K[axes[0]]))) {// if we are at the most on the right here we could only go down which is already check so it's over too
+                    break;
+                }
+                else if (actual_point[axes[1]] == 0) {// we cannot go down anymore and the right has already been checked so it's over
                     break;
                 }
                 else {
@@ -729,7 +728,7 @@ bool Coord(vector<int>& coord, size_t direction, vector<int>& K, vector<bool> ma
 }
 
 vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool> max_K, size_t m, int& n, const GRBEnv& env, vector<vector<double>>& Q, vector<int>& result,vector<int>& axes) {
-    size_t direction = 0;// as we span alone in direct x and y we only need to move from direction >= 2
+    size_t direction = 0;
     bool step = true;
     int min_y;
     do {
@@ -779,7 +778,8 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
             for (int i = 0; i < 2; i++) {
                 vector<int> list0 = points[axes[i]];
                 double l = round(list0.size() / 2);
-                int l_step = list0.size() - 1;
+                int l_step_supp = list0.size() - 1;
+                int l_step_inf = 0;
                 if (list0[0] - 0.5 < vars[axes[i]].get(GRB_DoubleAttr_X) and (l > 1)) {
                     while ((list0[l] - 0.5 < vars[axes[i]].get(GRB_DoubleAttr_X)) or (list0[l - 1] - 0.5 > vars[axes[i]].get(GRB_DoubleAttr_X))) {
                         if (l == list0.size() - 1) {// if we are at the end;
@@ -788,13 +788,13 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
                         }
                         if (list0[l] - 0.5 < vars[axes[i]].get(GRB_DoubleAttr_X)) {
                             int step = l;
-                            l = l + round(abs(l_step - l) / 2);
-                            l_step = step;
+                            l = l + round(abs(l_step_supp - l) / 2);
+                            l_step_inf = step;
                         }
                         if (list0[l - 1] - 0.5 > vars[axes[i]].get(GRB_DoubleAttr_X)) {
                             int step = l;
-                            l = l - round(abs(l_step - l) / 2);
-                            l_step = step;
+                            l = l - round(abs(l-l_step_inf) / 2);
+                            l_step_supp = step;
                         }
                     }
                     if (l != list0.size()-1) {
@@ -857,6 +857,11 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
             min_y = vars1[axes[1]].get(GRB_DoubleAttr_X);
         }
         if (go_check) {// we have an intersection with Q
+            //cout << "starting point =";
+            //for (auto s : starting_point) {
+            //    cout << s << " ";
+            //}
+            //cout << endl ;
             step = bypass_2D(starting_point, min_y, points, C, K, max_K, env, Q, m,result,axes);
         }
         if (not step) {
@@ -878,7 +883,6 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
     vector<int> axes;
     C = minimality(C, m);
     for (int i = 0; i < m; i++) {
-        //cout << "portic";
         sort(C.begin(), C.end(), [i](const Eigen::VectorXd& a, const Eigen::VectorXd& b) {
             return a[i] < b[i]; // sort criteria is based on coordinate i
             });
@@ -918,26 +922,27 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
         }
         else if (status0 == GRB_OPTIMAL) {
             double l = round(list0.size() / 2);
-            int l_step = list0.size();
-            if (l_step > 1) {
-                if (list0[0] - 0.5 <= vars[i].get(GRB_DoubleAttr_X) and (list0[l_step - 1] - 0.5 >= vars[i].get(GRB_DoubleAttr_X))) {// if the min of Q in direction is contained between the min and max of the C[i] values
+            int l_step_supp = list0.size();
+            int l_step_inf = 0;
+            if (l_step_supp > 1) {
+                if (list0[0] - 0.5 <= vars[i].get(GRB_DoubleAttr_X) and (list0[l_step_supp - 1] - 0.5 >= vars[i].get(GRB_DoubleAttr_X))) {// if the min of Q in direction is contained between the min and max of the C[i] values
                     if (list0[0] - 0.5 == vars[i].get(GRB_DoubleAttr_X)) {
 
                     }
-                    else if ((list0[l_step - 1] - 0.5 == vars[i].get(GRB_DoubleAttr_X))) {
-                        list0 = { list0[l_step - 1] };
+                    else if ((list0[l_step_supp - 1] - 0.5 == vars[i].get(GRB_DoubleAttr_X))) {
+                        list0 = { list0[l_step_supp - 1] };
                     }
                     else {
                         while ((list0[l] - 0.5 < vars[i].get(GRB_DoubleAttr_X)) or (list0[l - 1] - 0.5 > vars[i].get(GRB_DoubleAttr_X))) {
                             if (list0[l] - 0.5 < vars[i].get(GRB_DoubleAttr_X)) {
                                 int step = l;
-                                l = l + round(abs(l_step - l) / 2);
-                                l_step = step;
+                                l = l + round(abs(l_step_supp - l) / 2);
+                                l_step_inf = step;
                             }
                             if (list0[l - 1] - 0.5 > vars[i].get(GRB_DoubleAttr_X)) {
                                 int step = l;
-                                l = l - round(abs(l_step - l) / 2);
-                                l_step = step;
+                                l = l - round(abs(l-l_step_inf) / 2);
+                                l_step_supp = step;
                             }
                             if (l == 0) {
                                 break;
@@ -952,8 +957,8 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                         }// the only remaining case is if min is between the first and second value of the c[i] so then we just don't do anything
                     }
                 }
-                else if (list0[l_step - 1] <= vars[i].get(GRB_DoubleAttr_X)) {// if the min is already bigger than everything
-                    list0.erase(list0.begin(), list0.begin() + l_step - 1);
+                else if (list0[l_step_supp - 1] <= vars[i].get(GRB_DoubleAttr_X)) {// if the min is already bigger than everything
+                    list0.erase(list0.begin(), list0.begin() + l_step_supp - 1);
 
                 }
                 else {// if the min is smaller than the range of the hyperplane 
@@ -995,7 +1000,7 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                 }
             }
             else {// if size is 1
-                if (list0[l_step - 1] > vars[i].get(GRB_DoubleAttr_X)) {// if the min is smaller than the range of the hyperplane 
+                if (list0[l_step_supp - 1] > vars[i].get(GRB_DoubleAttr_X)) {// if the min is smaller than the range of the hyperplane 
                     // we then need to check if there is an integer vector with a value smaller in that direction
                     GRBModel model2 = GRBModel(env);
                     model2.set(GRB_IntParam_OutputFlag, 0);
@@ -1061,27 +1066,28 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
         }
         else if (status == GRB_OPTIMAL) {
             double l1 = round(list0.size() / 2);
-            int l_step1 = list0.size();
-            if (list0[l_step1 - 1] >= vars1[i].get(GRB_DoubleAttr_X)) {// if the max is contained in between the C[i]
-                if (list0[l_step1 - 1] > vars1[i].get(GRB_DoubleAttr_X)) {
+            int l_step1_supp = list0.size();
+            int l_step1_inf = 0;
+            if (list0[l_step1_supp - 1] >= vars1[i].get(GRB_DoubleAttr_X)) {// if the max is contained in between the C[i]
+                if (list0[l_step1_supp - 1] > vars1[i].get(GRB_DoubleAttr_X)) {
                     K_max.push_back(true);// K_max[i] is true if the max is contained in between the C[i]
                 }
                 else {
                     K_max.push_back(false);// if K_max[i]==C[i]_max then we have to check x[i]>=C[i] max-0.5
                 }
-                if (list0[l_step1 - 1] == vars1[i].get(GRB_DoubleAttr_X)) {
+                if (list0[l_step1_supp - 1] == vars1[i].get(GRB_DoubleAttr_X)) {
                 }
                 else {
                     while ((list0[l1] - 0.5 < vars1[i].get(GRB_DoubleAttr_X)) or (list0[l1 - 1] - 0.5 > vars1[i].get(GRB_DoubleAttr_X))) {
                         if (list0[l1] - 0.5 < vars1[i].get(GRB_DoubleAttr_X)) {
                             int step1 = l1;
-                            l1 = l1 + round(abs(l_step1 - l1) / 2);
-                            l_step1 = step1;
+                            l1 = l1 + round(abs(l_step1_supp - l1) / 2);
+                            l_step1_inf = step1;
                         }
                         if (list0[l1 - 1] - 0.5 > vars1[i].get(GRB_DoubleAttr_X)) {
                             int step1 = l1;
-                            l1 = l1 - round(abs(l_step1 - l1) / 2);
-                            l_step1 = step1;
+                            l1 = l1 - round(abs(l1-l_step1_inf) / 2);
+                            l_step1_supp = step1;
                         }
                     }
                     if (l1 == 0) {
@@ -1109,10 +1115,29 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
             j += 1;
         } while (axes.size() < 2);
     }
+    int max_1 = 0;
+    int max_2 = 0;
+    for (int i = 0; i < m; ++i) {
+        if (K[i] > max_1) {
+            axes[1] = axes[0];
+            max_2 = max_1;
+            axes[0] = i;
+            max_1 = K[i];
+        }
+        else if (K[i] > max_2) {
+            axes[1] = i;
+            max_2 = K[i];
+        }
+    }
     cout << "axes=";
     for (auto a : axes) {
         cout << a << " ";
     }
+    cout << endl ;
     int n = 0;
+    //cout << "prepa finito" << endl;
+    for (auto l : List) {
+        cout << l.size() << endl;
+    }
     return check_cell(coord, List, C, K, K_max, m, n, env, Q, result, axes);
 }
