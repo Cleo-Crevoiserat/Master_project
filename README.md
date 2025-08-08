@@ -61,4 +61,3 @@ Each agent's utility is defined per object type.
 ## 📎 Notes
 
 - The code leverages Gurobi for solving ILPs; make sure your environment is correctly configured.
-- The logic is inspired by recent research (e.g., on pseudopolynomial forall-exist algorithms).
