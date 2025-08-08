@@ -34,15 +34,12 @@ int main(){
         Main(Q, W, 2, 3);
     }
     if (prob == 1) {// you want to solve a fair allocation problem
-        cout << "result " << 279.0 / 100 << endl;
         int nb_agent = 2;
         int nb_object = 4;
         Eigen::VectorXd N(nb_object);// define the nuber of item per object
         N << 1, 1, 1, 1;
         vector < vector<int>> Utility = { {279, 262, 233, 226}, {100, 484, 208, 208} };// you define your utility function
         Main_alloc(Utility, nb_object, nb_agent, N);
-        //1 0 0 1 1 0 0 1
-        //1 0 0 1 1 0 0 1
     }
     return 0;
 }
