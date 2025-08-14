@@ -1,0 +1,7 @@
+Open x64 Native Tools Command for Developers
+
+Run Commands:
+
+cd C:\Users\crevo\source\repos\Gurobi_test\Gurobi_test
+
+cl /EHsc /MD /std:c++17 /I"C:\gurobi1103\win64\include" /I"C:\Libraries\eigen-3.4.0" Forall-exist.cpp Construction_Allocation.cpp Construction_Part_1.cpp Solve_6.cpp Usefull_fct.cpp C:\gurobi1103\win64\lib\gurobi110.lib C:\gurobi1103\win64\lib\gurobi_c++md2017.lib /FeForall-exist.exe && Forall-exist.exe

@@ -7,7 +7,7 @@
 #include <fstream>
 #include <cmath>
 #include <Eigen/Dense>
-#include "Usefull_fct.h"
+#include "Useful_fct.h"
 #include "Solve_6.h"
 #include "Construction_Part_1.h"
 #include "Solve_6_4.h"
@@ -74,6 +74,7 @@ vector<vector<double>> Q_create(const int& n, const int& m, Eigen::VectorXd& N, 
     return Q;
 }
 vector<vector<double>> Q_create_case_2(const int& n, const int& m, Eigen::VectorXd& N, vector<vector<int>> Utility) {
+    // create the polyhedron Q for dimension M+N+1+N*M
     vector<vector<double>> Q;
     for (int i = 0; i < m; ++i) {
         vector<double> q_1(m + n + m * n + 2, 0);
@@ -85,7 +86,6 @@ vector<vector<double>> Q_create_case_2(const int& n, const int& m, Eigen::Vector
         Q.push_back(q_1);
         Q.push_back(q_2);
     }
-    //cout << "step 1 done" << endl;
     for (int i = 0; i < n; ++i) {
         vector<double> q_1(m + n + m * n + 2, 0);
         q_1[0] = 0;
@@ -100,7 +100,6 @@ vector<vector<double>> Q_create_case_2(const int& n, const int& m, Eigen::Vector
         Q.push_back(q_1);
         Q.push_back(q_2);
     }
-    //cout << "step 2 done" << endl;
     vector<double> q_1(m + n + m * n + 2, 0);
     q_1[m + n + 1] = 1;
     vector<double> q_2(m + n + m * n + 2, 0);
@@ -115,7 +114,6 @@ vector<vector<double>> Q_create_case_2(const int& n, const int& m, Eigen::Vector
     q_2[0] = -1;
     Q.push_back(q_1);
     Q.push_back(q_2);
-    //cout << "step 3 done" << endl;
     for (int j = 0; j < m; ++j) {
         for (int i = 0; i < n; ++i) {
             vector<double> q_1(m + n + m * n + 2, 0);
@@ -123,7 +121,6 @@ vector<vector<double>> Q_create_case_2(const int& n, const int& m, Eigen::Vector
             Q.push_back(q_1);
         }
     }
-    //cout << "step 4 done" << endl;
     for (int j = 0; j < m; ++j) {
         vector<double> q_1(m + n + m * n + 2, 0);
         q_1[0] = N[j];
@@ -132,7 +129,6 @@ vector<vector<double>> Q_create_case_2(const int& n, const int& m, Eigen::Vector
         }
         Q.push_back(q_1);
     }
-    //cout << "step 5 done" << endl;
     for (int j = 0; j < n; ++j) {
         for (int i = 0; i < n; ++i) {
             vector<double> q_1(m + n + m * n + 2, 0);
@@ -145,7 +141,6 @@ vector<vector<double>> Q_create_case_2(const int& n, const int& m, Eigen::Vector
             }
         }
     }
-    //cout << "step 6 done" << endl;
     return Q;
 }
 Eigen::MatrixXd Allocation_Matrix(const int& n, const int& m, Eigen::VectorXd& N, vector<vector<int>>& Utility) {
@@ -165,7 +160,6 @@ Eigen::MatrixXd Allocation_Matrix(const int& n, const int& m, Eigen::VectorXd& N
             W(m + n, j * n + i) = -Utility[i][j];
         }
     }
-    //cout << W;
     return W;
 }
 vector<Eigen::VectorXd> gen_C_Alloc(Eigen::MatrixXd& W, Eigen::VectorXd& N, int m, int n, int n_1, int m_1) {
@@ -192,7 +186,7 @@ vector<Eigen::VectorXd> gen_C_Alloc(Eigen::MatrixXd& W, Eigen::VectorXd& N, int 
             c_cut(i)=c(i+m_1);
         }
         C.push_back(c_cut);
-    } while (!(coord_Spe_C_Alloc(Coord, m_1 - 1, N[m_1 - 1] - 1, N, m_1, n_1)));
+    } while (not (coord_Spe_C_Alloc(Coord, m_1 - 1, N[m_1 - 1] - 1, N, m_1, n_1)));
     return C;
 
 }
@@ -245,65 +239,49 @@ vector<Eigen::VectorXd> gen_C_Alloc_1(Eigen::MatrixXd& W, int bound, int m, int 
 }
 
 double Main_alloc(vector< vector<int>>& Utility, int m, int n, Eigen::VectorXd& N) {
-    int nb_cell = 1;
     GRBEnv env = GRBEnv(true);
     env.set(GRB_IntParam_InfUnbdInfo, 1);
     env.start();
     auto start = std::chrono::high_resolution_clock::now();
     vector<vector<double>> Q;
-    Q= Q_create(n, m, N, Utility);
-    //Q = Q_create_case_2(n, m, N, Utility);
-    //for (auto q : Q) {
-    //    for (auto q_1 : q) {
-    //        cout << q_1 << " ";
-    //    }
-    //    cout << endl;
-    //}
     Eigen::MatrixXd W = Allocation_Matrix(n, m, N, Utility);
     int m_1 = m + n + 1 + n * m;
     int n_1 = n * m;
     Eigen::MatrixXd W2 = Allocation_expansion(W, m_1, n_1);
-    //long long int bound = max_det_sub_mat_alloc(n, m, W2);
     long long int Delta = W.cwiseAbs().maxCoeff();// the max abs value of W
     long long int inf_norm = (W.cwiseAbs().rowwise().sum()).maxCoeff(); //the infinity norm of W
     long long int hadamard = sqrt(pow(2 * Delta, 2) + 1);// the hadamard inequality for Delta_m in order to be faster
-    //cout << hadamard;
+    cout << "hadamard =" << hadamard;
     long long int  bound_2 = inf_norm * m * pow(2 * m * Delta + 1, m);// previous bound
-    for (int i = 0; i < n + m + 1; ++i) {
-
-    }
-    hadamard = pow(hadamard, n + m + 1);
-    //cout << hadamard;
-    hadamard = hadamard * inf_norm *(n_1);// *(n-m)=(n_1+n*m+1-(n*m+1))
-    //cout << hadamard;
-    cout << true << " " << (hadamard > 0);
-    int bound=0;
-    if ((hadamard < 0) and (bound_2 < 0)) {// the number is to big to be used
-        bound = -1;
-    }
-    else if ((hadamard < 0)) {
-        bound = bound_2;
-    }
-    else if ((bound_2 < 0)) {
-        bound = hadamard;
-    }
-    else {
-        if (hadamard < bound_2) {
-            bound = hadamard;
-        }
-        else {
-            bound = bound_2;
-        }
-    }
-    int check = 1;
-    int facto = factorial(n-1);
+    bool check =false;
+    int new_method = 1;
+    int facto = factorial(n - 1);
     for (int i = 0; i < m; ++i) {
-        check = (check * factorial(n-1 + N(i)) / factorial(N(i))) / facto;// the number of point that have to be generated
+        new_method = (new_method * factorial(n - 1 + N(i)) / factorial(N(i))) / facto;// the number of point that have to be generated
     }
-    cout << "finito ";
-    cout << bound;
-    if ((true) or (bound<0) or (check<=bound) or(check<=pow(bound,m+n+1))) {// we will have to do less operations
-        cout << "on rentre";
+    cout << "new_method=" << new_method;
+    if (new_method < bound_2) {
+        cout << "bound_2 =" << bound_2;
+        for (int i = 0; i < (n + m + 1); ++i) {
+            cout << "hadamard =" << hadamard;
+            if (hadamard > new_method) {
+                check = true;
+                break;
+            }
+            hadamard *= hadamard;
+        }
+        if (not check) {
+            hadamard *= inf_norm * (n - m);
+            for (int i = 0; i < (n + m + 1); ++i) {
+                if (hadamard > new_method) {
+                    check = true;
+                    break;
+                }
+                hadamard *= hadamard;
+            }
+        }
+    }
+    if ((true) or (check)) {// we will have to do less operations
         Q = Q_create(n, m, N, Utility);
         vector<Eigen::VectorXd> C;
         C = gen_C_Alloc(W, N, m_1, n_1, n, m);
@@ -331,11 +309,10 @@ double Main_alloc(vector< vector<int>>& Utility, int m, int n, Eigen::VectorXd& 
             expr += (vars[k] * 1);
         }
         model.addConstr(expr >= 1, "Q_constraint_" + std::to_string(nb));// we check if it exists at least one allocation which is ! [0,0,...,0] 
-        model.write("modele_test.lp");
         model.optimize();
         int status1 = model.get(GRB_IntAttr_Status);
         if (status1 == GRB_OPTIMAL) {
-            vector<vector<int>> fin = Solve6(C, Q, m_1, coord, env, result,nb_cell);
+            vector<vector<int>> fin = Solve6(C, Q, m_1, coord, env, result);
             cout << endl;
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double, std::ratio<1>> duration = end - start;
@@ -374,24 +351,29 @@ double Main_alloc(vector< vector<int>>& Utility, int m, int n, Eigen::VectorXd& 
                     cout << "is indeed fair";
                 }
             }
-            //return nb_cell;
+            else {
+                cout << endl << "there is no fair allocation" << endl;
+            }
             return duration.count();
         }
         else {
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double, std::ratio<1>> duration = end - start;
             std::cout << "no solution and Algorithm took " << duration.count() << " seconds.\n" << std::endl;
-            //return -12;
             return duration.count();
         }
     }
     else {
         Q = Q_create_case_2(n, m, N, Utility);
+        long long int bound = max_det_sub_mat_alloc(n, m, W2)*inf_norm*n_1;//(n-m)=(M + N+ 1 + N * M-M+N+1)
         vector<double> Time;
         auto start = std::chrono::high_resolution_clock::now();
         vector<int> result;
         vector<Eigen::VectorXd> C;
         n_1 = n_1 + m * n + 1+n+m;
+        if (bound > bound_2) {// we compare the two bounds
+            bound = bound_2;
+        }
         C = gen_C_Alloc_1(W2,bound, m_1, n_1, n * m, env);
         result = cone_W(n_1, m_1, env, Q, W2);
         if (result != vector<int>(0, m_1)) {

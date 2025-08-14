@@ -9,7 +9,7 @@
 #include <cmath>
 #include <Eigen/Dense>
 #include "Construction_Allocation.h"
-#include "Usefull_fct.h"
+#include "Useful_fct.h"
 using namespace std;
 
 Eigen::RowVectorXd Hyperplan_def(size_t const m, size_t const n, Eigen::MatrixXd const& W, vector<int> coord);
@@ -20,7 +20,7 @@ Eigen::MatrixXd matrix_expansion(Eigen::MatrixXd& W, int& m, int& n);
 // generates the new matrix going from the question Wx<=b to W'x'=b
 vector<Eigen::VectorXd> find_P(vector<vector<double>>& Parall, int m);
 // find all the integer point in the parallelograme of W
-vector<Eigen::VectorXd> parallelograme(size_t const m, Eigen::MatrixXd const& W, vector<vector<double>>& Q);
+vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, vector<vector<double>>& Q);
 // construct the paralellogram of (W) and find all integer point in it and add inequalities to Q in order for it to be in cone(W)
 vector<Eigen::VectorXd> solve_17(const vector<Eigen::VectorXd>& C, const Eigen::MatrixXd& W, const Eigen::MatrixXd& W_inv, const Eigen::VectorXd& p, const int& m);
 //keep only the elements in C such that c equiv p mod (the lattice of W)

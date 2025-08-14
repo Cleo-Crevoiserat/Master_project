@@ -9,16 +9,16 @@
 #include <cmath>
 #include <Eigen/Dense>
 #include "Construction_Allocation.h"
-#include "Usefull_fct.h"
+#include "Useful_fct.h"
 using namespace std;
 
-vector<bool> right(vector<int> actual_point, int min_y, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool>& max_K, vector<int> direction, const GRBEnv& env, vector<vector<double>>& Q, int m, vector<int>& result);
+vector<bool> right(vector<int> actual_point, int min_y, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool>& max_K, vector<int> direction, const GRBEnv& env, vector<vector<double>>& Q, int m, vector<int>& result, vector<int>& axes);
 // check all the cells on the right of the one we are located at that point
-vector<bool> bypass_2D_down(vector<int>& actual_point, int min_y, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool> max_K, vector<int> direction, const GRBEnv& env, vector<vector<double>>& Q, int m, vector<int>& result);
+vector<bool> facet_Q_2D_down(vector<int>& actual_point, int min_y, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool> max_K, vector<int> direction, const GRBEnv& env, vector<vector<double>>& Q, int m, vector<int>& result, vector<int>& axes);
 // will follow the vertices of polyhedra that are going "down" regarding the second axis
-vector<bool> bypass_2D_up(vector<int>& actual_point, int min_y, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool> max_K, vector<int> direction, const GRBEnv& env, vector<vector<double>>& Q, int m, vector<int>& result);
+vector<bool> facet_Q_2D_up(vector<int>& actual_point, int min_y, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool> max_K, vector<int> direction, const GRBEnv& env, vector<vector<double>>& Q, int m, vector<int>& result, vector<int>& axes);
 // will follow the vertices of polyhedra that are going "up" regarding the second axis
-bool bypass_2D(const vector<int>& starting_point, int min_y, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool> max_K, const GRBEnv& env, vector<vector<double>>& Q, int m, vector<int>& result);
+bool facet_Q_2D(const vector<int>& starting_point, int min_y, int max_y, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool> max_K, const GRBEnv& env, vector<vector<double>>& Q, int m, vector<int>& result, vector<int>& axes);
 //check all the cells that are needed to be checked when the direction> 2 are bounded
 vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& points, const vector<Eigen::VectorXd>& C, vector<int>& K, vector<bool> max_K, size_t m, int& n, const GRBEnv& env, vector<vector<double>>& Q, vector<int>& result,vector<int>& axes);
 //check all the cells that are needed to be checked

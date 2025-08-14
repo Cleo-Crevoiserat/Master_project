@@ -8,7 +8,7 @@
 #include <cmath>
 #include <Eigen/Dense>
 #include "Construction_Allocation.h"
-#include "Usefull_fct.h"
+#include "Useful_fct.h"
 #include "Solve_6.h"
 using namespace std;
 
@@ -52,7 +52,7 @@ Eigen::RowVectorXd Hyperplan_def(size_t const m, size_t const n, Eigen::MatrixXd
                 negative = false;
             }
             else {
-                W3 << W2.block(0, 0, i, m - 1), W2.block(i + 1, 0, m - 1 - i, m - 1);// 3 √† remplacer par n-1 et 6 par m-1
+                W3 << W2.block(0, 0, i, m - 1), W2.block(i + 1, 0, m - 1 - i, m - 1);// 3 ‡ remplacer par n-1 et 6 par m-1
                 val = W3.determinant();
                 rows(0, i + 1) = val;
                 negative = true;
@@ -121,7 +121,6 @@ vector<int> cone_W(const int n, const int m, const GRBEnv& env, vector<vector<do
         Eigen::RowVectorXd ineq;
         ineq = Hyperplan_def(m, n, W, coord);
         if (ineq != Eigen::RowVectorXd::Zero(m + 1)) {
-            //cout << ineq << endl;
             bool InIneq = false;
             for (auto const in : Ineq) {
                 if (in == ineq) {// We check that the inequality defining the hyperplan haven't already been added 
@@ -159,40 +158,6 @@ vector<int> cone_W(const int n, const int m, const GRBEnv& env, vector<vector<do
     } while (! (coord_spe_W(n, m - 1, coord)));
     return vector<int>(0, m);
 }
-
-//void Q_in_cone_W(const int m, vector<vector<double>>& Q, Eigen::MatrixXd W) {
-//    int nb = 0;
-//    vector<Eigen::RowVectorXd> Ineq;
-//    vector<int> coord;
-//    for (int i = 0; i < m - 1; ++i) {
-//        coord.push_back(i);
-//    }
-//    do {
-//        Eigen::RowVectorXd ineq;
-//        ineq = Hyperplan_def(m, m, W, coord);
-//        if (ineq != Eigen::RowVectorXd::Zero(m + 1)) {
-//            //cout << ineq << endl;
-//            bool InIneq = false;
-//            for (auto const in : Ineq) {
-//                if (in == ineq) {// We check that the inequality defining the hyperplan haven't already been added 
-//                    InIneq = true;
-//                    break;
-//                }
-//            }
-//            if (!(InIneq)) {
-//                Ineq.push_back(ineq);
-//                //cout << "we add the ineq: ";
-//                vector<double> q_ineq(m+1);// we want to add this inequality to Q in order to have Q in the cone(W)
-//                for (int i = 0; i < m +1; ++i) {
-//                    q_ineq[i] = ineq(i);
-//                    //cout << ineq(i) << "*x" << i << " + ";
-//                }
-//                //cout << endl;
-//                Q.push_back(q_ineq);
-//            }
-//        }
-//    } while (! (coord_spe_W(m, m - 1, coord)));
-//}
 
 Eigen::MatrixXd matrix_expansion(Eigen::MatrixXd& W, int& m, int& n) {
     Eigen::MatrixXd test(m, 2 *n + m);
@@ -236,7 +201,7 @@ vector<Eigen::VectorXd> find_P(vector<vector<double>>& Parall, int m) {
             solution(j) = vars[j].get(GRB_DoubleAttr_X);
         }
         solutions.push_back(solution);
-        // We add a constraint to be sure not to obtain the same one again
+        // We add a constraint to be sure not to obtain the same p again
         GRBQuadExpr expr1 = 0;
         for (size_t k = 0; k < m; ++k) {
             expr1 += (vars[k] - solution(k)) * (vars[k] - solution(k));
@@ -247,7 +212,7 @@ vector<Eigen::VectorXd> find_P(vector<vector<double>>& Parall, int m) {
 }
 
 vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, vector<vector<double>>& Q) {
-    vector<vector<double>> Parall(2 * m, vector<double>(m + 1, 0));//je connais d√©j√† la taille
+    vector<vector<double>> Parall(2 * m, vector<double>(m + 1, 0));//je connais dÈj‡ la taille
     Eigen::MatrixXd paral(2 * m, m + 1);
     Eigen::MatrixXd W3(m - 1, m - 1);
     bool negative = false;
@@ -263,7 +228,6 @@ vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, 
                 W2.col(k - 1) = W.col(k);
             }
         }
-        //cout <<"W2="<< W2 << endl;
         int tot = 0;
         Eigen::MatrixXd rows(1, m + 1);
         rows(0, 0) = 0;
@@ -271,7 +235,6 @@ vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, 
             int val = 0;
             if (i == 0) {
                 W3 << W2.block(1, 0, m - 1, m - 1);
-                //cout << "x_1* " << W3.determinant() << endl;
                 val = W3.determinant();
                 tot += W(i, j) * val;
                 rows(0, i + 1) = val;
@@ -280,14 +243,12 @@ vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, 
             else if (i == m - 1) {
                 if (negative) {
                     W3 << W2.block(0, 0, m - 1, m - 1);
-                    // cout << "x_" << i + 1 << "*" << -W3.determinant() << endl;
                     val = -W3.determinant();
                     tot += W(i, j) * val;
                     rows(0, i + 1) = val;
                 }
                 else {
                     W3 << W2.block(0, 0, m - 1, m - 1);
-                    //cout << "x_" << i + 1 << "*" << W3.determinant() << endl;
                     val = W3.determinant();
                     tot += W(i, j) * val;
                     rows(0, i + 1) = val;
@@ -296,8 +257,6 @@ vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, 
             else {
                 if (negative) {
                     W3 << W2.block(0, 0, i, m - 1), W2.block(i + 1, 0, m - 1 - i, m - 1);
-                    //cout << W3 << endl;
-                    //cout << "x_" << i + 1 << "*" << -W3.determinant() << endl;
                     val = -W3.determinant();
                     tot += W(i, j) * val;
                     rows(0, i + 1) = val;
@@ -305,7 +264,6 @@ vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, 
                 }
                 else {
                     W3 << W2.block(0, 0, i, m - 1), W2.block(i + 1, 0, m - 1 - i, m - 1);
-                    //cout << "x_" << i + 1 << "*" << W3.determinant() << endl;
                     val = W3.determinant();
                     tot += W(i, j) * val;
                     rows(0, i + 1) = val;
@@ -317,7 +275,6 @@ vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, 
             Parall[2 * j][0] = 0;
             Parall[2 * j + 1][0] = tot-1; // as we want to check row(0,1)*x_1+...<tot we will check row(0,1)*x_1+...<=tot-1
             for (size_t k = 1; k < m + 1; ++k) {
-                //cout << k;
                 Parall[2 * j][k] = rows(0, k);
                 Parall[2 * j + 1][k] = -rows(0, k);
             }
@@ -327,7 +284,6 @@ vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, 
             Parall[2 * j][0] = 0;
             Parall[2 * j + 1][0] = -(tot+1);
             for (size_t k = 1; k < m + 1; ++k) {
-                //cout << k;
                 Parall[2 * j][k] = -rows(0, k);// we want row(0,1)*x_1+...<0 so -row(0,1)*x_1-...>0
                 Parall[2 * j + 1][k] = rows(0, k);
             }
@@ -365,7 +321,7 @@ vector<vector<double>> Image_Q(vector<vector<double>>& Q, Eigen::MatrixXd W, Eig
         vector<double> q = {};
         int t = 0;
         for (int k = 1; k < m + 1; ++k) {
-            t += Q[i][k] * p[k - 1];// on adapte direct le Q-p aussi
+            t += Q[i][k] * p[k - 1];// we adapt directly to Q-p
         }
         q.push_back(Q[i][0] + t);
         for (int j = 0; j < m; ++j) {// Q[0] is of size m+1 but the cst is not interesting
@@ -392,7 +348,6 @@ int Square_Matrices(Eigen::MatrixXd& W, vector<vector<double>>& Q, vector<Eigen:
         for (size_t i = 0; i < m; ++i) {
             W_square.col(i) = W.col(coord[i]);
         }
-        //cout<<endl<< W_square;
         if ((W_square.determinant() == 0) || (W_square.determinant() == 1) || (W_square.determinant() == -1)) {
         }
         else {
@@ -400,12 +355,9 @@ int Square_Matrices(Eigen::MatrixXd& W, vector<vector<double>>& Q, vector<Eigen:
             vector<Eigen::VectorXd> P;
             Eigen::MatrixXd W_inv(m, m);
             W_inv = W_square.inverse();
-            //cout <<endl<< W_inv;
             vector<vector<double>> Q1=Q;// we make a copie because we are going to modify Q1
-            //Q_in_cone_W(m, Q1, W_square);
             P = parallelogram(m,W_square,Q1);
             for (auto const p : P) {
-                //cout <<endl<< "p=" << p;
                 if (p != null_vect) {
                     new_C = solve_17(C, W_square, W_inv, p, m);
                     vector<vector<double>> new_Q;
@@ -431,10 +383,7 @@ int Square_Matrices(Eigen::MatrixXd& W, vector<vector<double>>& Q, vector<Eigen:
                         vector<int> coord1(m, 0);
                         vector<int> result(m, 0);
                         vector<vector<int>> fin;
-                        //cout << endl << "on rentre dans solve_6";
-                        int nb_cell = 0;
-                        fin = Solve6(new_C, new_Q, m, coord1, env, result, nb_cell);
-                        //cout << endl << "on sort dans solve_6";
+                        fin = Solve6(new_C, new_Q, m, coord1, env, result);
                         if (fin[0][0] == 1) {
                             Eigen::VectorXd result1(m);
                             for (int i = 0; i < m; ++i) {

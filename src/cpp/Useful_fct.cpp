@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <ciso646>
 #include "gurobi_c++.h"
 #include <chrono>
 #include <fstream>
@@ -107,7 +108,6 @@ bool coord_Spe_C_Alloc(vector<Eigen::VectorXd>& coord, int direction_1, int dire
             for (int i = 0; i < N[direction_1]; ++i) {
                 coord[direction_1][i] = 1;
             }
-            //cout << "on est ici";
             return coord_Spe_C_Alloc(coord, direction_1 - 1, N[direction_1-1]-1, N, m, n);
         }
         else {
@@ -257,7 +257,6 @@ bool coord_spe_gen_C(Eigen::VectorXd& coord, size_t direction, size_t& face_nb, 
 }
 
 bool Around_faces_C(Eigen::VectorXd& coord, size_t direction, size_t& face_nb, Eigen::VectorXd& Max, int born, size_t m) {
-    //cout << coord << endl << endl;
     if (coord_spe_gen_C(coord, direction, face_nb, Max, born, m)) {
         if (face_nb == m - 1) {
             return true;
@@ -333,7 +332,6 @@ vector<Eigen::VectorXd> gen_C_5(Eigen::MatrixXd W, Eigen::VectorXd& Max, int bou
             }
         }
         w += 1;
-        tot += 1;
     } while (Around_faces_C(coord, 0, face_nb, Max, bound, m) == false);
     return C_1;
 }

@@ -6,7 +6,7 @@
 #include <chrono>
 #include <cmath>
 #include "Construction_Allocation.h"
-#include "Usefull_fct.h"
+#include "Useful_fct.h"
 #include "Construction_Part_1.h"
 using namespace std;
 
@@ -494,7 +494,6 @@ bool facet_Q_2D(const vector<int>& starting_point, int min_y,int max_y, const ve
         }
         if (T[1] == true) {
             if ((actual_point[axes[1]] == 0) or (points[axes[1]][actual_point[axes[1]]]-0.5 <= min_y)) {// we can't go "down" anymore
-                //cout << "on sort là";
                 break; 
             }
             else {
@@ -534,8 +533,7 @@ bool facet_Q_2D(const vector<int>& starting_point, int min_y,int max_y, const ve
                 if (((actual_point[axes[1]] == K[axes[1]]) and (not max_K[axes[1]])) or ((actual_point[axes[1]] == K[axes[1]] - 1) and (max_K[axes[1]]))) {// if we are at the "top" of the y axis then it's over
                     break;
                 }
-                if (points[axes[1]][actual_point[axes[1]]+1] - 0.5 >= max_y) {// then the next step would be higher than the max of $Q$ in that portion
-                    //cout << points[axes[1]][actual_point[axes[1]] + 1];
+                if (points[axes[1]][actual_point[axes[1]]+1] - 0.5 >= max_y) {// then the next step would be higher than the max of Q in that portion
                     break;
                 }
                 else {
@@ -546,9 +544,6 @@ bool facet_Q_2D(const vector<int>& starting_point, int min_y,int max_y, const ve
                 if (((actual_point[axes[0]]== K[axes[0]]) and (not max_K[axes[0]])) or ((actual_point[axes[0]] == K[axes[0]] - 1) and (max_K[axes[0]]))) {// if we are at the most on the right here we could only go down which is already check so it's over too
                     break;
                 }
-                //else if (actual_point[axes[1]] == 0) {// we cannot go down anymore and the right has already been checked so it's over
-                //    break;
-                //}
                 else {
                     direction = { 1,0 };
                 }
@@ -559,9 +554,9 @@ bool facet_Q_2D(const vector<int>& starting_point, int min_y,int max_y, const ve
 }
 bool Coord(vector<int>& coord, size_t direction, vector<int>& K, vector<bool> max_K, size_t m, vector<int>& axes) {// in order to create a cartesian product
     if (m <= 2) {
-        return true;// contourn_2D will do everything in one time
+        return true;// facet_Q_2D will do everything in one time
     }
-    if (((axes[0] == m - 1) or (axes[1] == m - 1)) and ((axes[0] == m - 2) or (axes[1] == m - 2))) {
+    if (((axes[0] == m - 1) or (axes[1] == m - 1)) and ((axes[0] == m - 2) or (axes[1] == m - 2))) {// as we want to evade the axes if they are at the end we stop at coord[m-3]
         if (direction == m - 3) {
             if (max_K[m - 3]) {
                 if (coord[m - 3] == K[m - 3] - 1) {// As max_K is true if the values are smaller than the max
@@ -605,7 +600,7 @@ bool Coord(vector<int>& coord, size_t direction, vector<int>& K, vector<bool> ma
             }
         }
     }
-    else if ((axes[0] == m - 1) or (axes[1] == m - 1)) {
+    else if ((axes[0] == m - 1) or (axes[1] == m - 1)) {// same idea but only one of the axes is at the end
         if (direction == m - 2) {
             if (max_K[m - 2]) {
                 if (coord[m - 2] == K[m - 2] - 1) {// As max_K is true if the values are smaller than the max
@@ -625,7 +620,7 @@ bool Coord(vector<int>& coord, size_t direction, vector<int>& K, vector<bool> ma
             }
         }
         else {
-            if (((axes[0] == direction) or (axes[1] == direction))) {
+            if (((axes[0] == direction) or (axes[1] == direction))) {// we just skip this direction
                 return Coord(coord, direction+1, K, max_K, m, axes);
             }
             if (max_K[direction]) {
@@ -653,7 +648,7 @@ bool Coord(vector<int>& coord, size_t direction, vector<int>& K, vector<bool> ma
         }
     }
     else {
-        if (direction == m - 1) {
+        if (direction == m - 1) {// now the last direction should be the last component i.e m-1
             if (max_K[m - 1]) {
                 if (coord[m - 1] == K[m - 1] - 1) {// As max_K is true if the values are smaller than the max
                     return true;
@@ -672,7 +667,7 @@ bool Coord(vector<int>& coord, size_t direction, vector<int>& K, vector<bool> ma
             }
         }
         else {
-            if (((axes[0] == direction) or (axes[1] == direction))) {
+            if (((axes[0] == direction) or (axes[1] == direction))) {// we just skip that component
                 return Coord(coord, direction + 1, K, max_K, m, axes);
             }
             if (max_K[direction]) {
@@ -713,10 +708,10 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
         for (size_t j = 0; j < m; ++j) {
             vars[j] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0.0, GRB_CONTINUOUS, "x_" + std::to_string(j)); // continuous variables
         }
-        model.setObjective(-vars[axes[0]], GRB_MAXIMIZE);// we searching the min for the first direction
+        model.setObjective(-vars[axes[0]], GRB_MAXIMIZE);// we searching the min for the "first" direction (axes[0])
         int nb = 0;
         if (m > 2) {
-            for (size_t k = 0; k < m; ++k) {// we let x and y be free
+            for (size_t k = 0; k < m; ++k) {
                 if (((k == axes[0]))or ((k == axes[1]))) {
                     model.addConstr(vars[k] >= points[k][0] - 0.5, "constraint_" + std::to_string(k));
                 }// we know that everything smaller than l^0 is not a problem thanks to the process made in solve6
@@ -742,14 +737,13 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
         model.optimize();
         int status0 = model.get(GRB_IntAttr_Status);
         bool go_check = true;
-        if (status0 == GRB_UNBOUNDED) {
+        if (status0 == GRB_UNBOUNDED) {// shouldn't happen
         }
-        else if (status0 == GRB_INFEASIBLE) {
-            // std::cout << "The problem is infeasible in x !" << std::endl;
+        else if (status0 == GRB_INFEASIBLE) {// if this is infeasible then Q doesn't have any intersection in that region
             go_check = false;
         }
         else if (status0 == GRB_OPTIMAL) {
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 2; i++) {// we search the value of the tupple such that the cell will contain this point
                 vector<int> list0 = points[axes[i]];
                 double l = round(list0.size() / 2);
                 int l_step_supp = list0.size() - 1;
@@ -781,7 +775,15 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
             }
         }
         else {
-            go_check = false;
+            cout << endl << " something weird is happening in Q searching for a min in check_cell" << endl;
+            for (size_t i = 0; i < m; ++i) {// gives the position where it happens
+                if ((i == axes[0]) or (i == axes[1])) {
+                    result[i] = 0;
+                }
+                else {
+                    result[i] = starting_point[i];
+                }
+            }
         }
         for (int i = 0; i < m; i++) {
             if ((i != axes[0]) and (i != axes[1])) {
@@ -830,9 +832,19 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
         }
         else if (status1 == GRB_INFEASIBLE) {// if it was infeasible it would have been already before
         }
-        else {
+        else if (status1==GRB_OPTIMAL) {
             min_y = vars1[axes[1]].get(GRB_DoubleAttr_X);
-            //cout << endl << "min_y= " << min_y;
+        }
+        else {
+            cout << endl << " something weird is happening in Q searching for a min in check_cell" << endl;
+            for (size_t i = 0; i < m; ++i) {// gives the position where it happens
+                if ((i == axes[0]) or (i == axes[1])) {
+                    result[i] = 0;
+                }
+                else {
+                    result[i] = starting_point[i];
+                }
+            }
         }
         int max_y;
         GRBModel model2 = GRBModel(env);
@@ -877,12 +889,20 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
         }
         else if (status2 == GRB_INFEASIBLE) {// if it was infeasible it would have been already before
         }
-        if (status2==GRB_OPTIMAL){
+        else if (status2==GRB_OPTIMAL){
             max_y = vars2[axes[1]].get(GRB_DoubleAttr_X);
-            //cout << endl << "max_y= "<<max_y << endl;
         }
         else {
-            max_y = K[axes[1]] + 1; // we don't know so in order to no have problems, we specify that the max is bigger than the max of the c(2)
+            cout << endl << " something weird is happening in Q searching for a min in check_cell" << endl;
+            for (size_t i = 0; i < m; ++i) {// gives the position where it happens
+                if ((i == axes[0]) or (i == axes[1])) {
+                    result[i] = 0;
+                }
+                else {
+                    result[i] = starting_point[i];
+                }
+            }
+            return { {1},{0} };
         }
         if (go_check) {// we have an intersection with Q
             step = facet_Q_2D(starting_point, min_y,max_y, points, C, K, max_K, env, Q, m,result,axes);
@@ -895,15 +915,13 @@ vector<vector<int>> check_cell(vector<int>& coord, const vector<vector<int>>& po
     return { {0},{0} };
 }
 
-vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q, size_t m, vector<int>& coord, const GRBEnv& env, vector<int>& result,int& nb_cell) {
+vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q, size_t m, vector<int>& coord, const GRBEnv& env, vector<int>& result) {
     vector<vector<int>> List = {};
     vector<int> K = {};
     vector<bool> K_max = {};
     vector<int> minimal_elem = {};
     vector<int> axes;
     C = minimality(C, m);
-    //int nb_cell = 1;
-    //cout << "C size=" << C.size();
     for (int i = 0; i < m; i++) {
         sort(C.begin(), C.end(), [i](const Eigen::VectorXd& a, const Eigen::VectorXd& b) {
             return a[i] < b[i]; // sort criteria is based on coordinate i
@@ -916,7 +934,6 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                 list0.push_back(c[i]);
             }
         }
-        //cout << "list0 size avant =" << list0.size();
         GRBModel model = GRBModel(env);
         model.set(GRB_IntParam_OutputFlag, 0);
         std::vector<GRBVar> vars(m);
@@ -969,7 +986,13 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                     cout << vars2[i].get(GRB_DoubleAttr_X) << ",";
                     result[i] = vars2[i].get(GRB_DoubleAttr_X);
                 }
-                nb_cell = -12;
+                return{ {1},{0} };
+            }
+            else {
+                cout << endl << " something weird is happening in Q at the start" << endl;
+                for (size_t i = 0; i < m; ++i) {// gives the position where it happens
+
+                }
                 return{ {1},{0} };
             }
         }
@@ -977,7 +1000,7 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
             std::cout << "The problem is infeasible!, There is no points in Q" << std::endl;
         }
         else if (status0 == GRB_OPTIMAL) {
-            double l = round(list0.size() / 2);
+            double l = round(list0.size() / 2);// we now check if the min is higher than some value of elements in C
             int l_step_supp = list0.size();
             int l_step_inf = 0;
             if (l_step_supp > 1) {
@@ -1050,7 +1073,6 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                             cout << vars2[i].get(GRB_DoubleAttr_X) << ",";
                             result[i] = vars2[i].get(GRB_DoubleAttr_X);
                         }
-                        nb_cell = -12;
                         return{ {1},{0} };
                     }
                 }
@@ -1088,11 +1110,24 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                             cout << vars2[i].get(GRB_DoubleAttr_X) << ",";
                             result[i] = vars2[i].get(GRB_DoubleAttr_X);
                         }
-                        nb_cell = -12;
+                        return{ {1},{0} };
+                    }
+                    else {
+                        cout << endl << " something weird is happening in Q at the start" << endl;
+                        for (size_t i = 0; i < m; ++i) {// gives the position where it happens
+
+                        }
                         return{ {1},{0} };
                     }
                 }
             }
+        }
+        else {
+            cout << endl << " something weird is happening in Q at the start" << endl;
+            for (size_t i = 0; i < m; ++i) {// gives the position where it happens
+
+            }
+            return{ {1},{0} };
         }
         GRBModel model1 = GRBModel(env);
         model1.set(GRB_IntParam_OutputFlag, 0);
@@ -1159,13 +1194,18 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                 K_max.push_back(false);
             }
         }
+        else {
+            cout << endl << " something weird is happening in Q at the start" << endl;
+            for (size_t i = 0; i < m; ++i) {// gives the position where it happens
+
+            }
+            return{ {1},{0} };
+        }
         K.push_back(list0.size() - 1);
         if ((list0.size() > 2) and (axes.size() < 2)) {
             axes.push_back(i);
         }
         List.push_back(list0);// it contains for each direction what value would the intersection take
-        //cout << "list0 size apres =" << list0.size()<<endl;
-        nb_cell *= list0.size();
     }
     if (axes.size() < 2) {// almost all directions have only one element
         int j = 0;
@@ -1176,7 +1216,7 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
     }
     int max_1 = 0;
     int max_2 = 0;
-    for (int i = 0; i < m; ++i) {
+    for (int i = 0; i < m; ++i) {// we chose our axes 
         if (K[i] > max_1) {
             axes[1] = axes[0];
             max_2 = max_1;
@@ -1188,17 +1228,6 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
             max_2 = K[i];
         }
     }
-    //cout << "axes=";
-    //for (auto a : axes) {
-    //    cout << a << " ";
-    //}
-    //cout << endl ;
     int n = 0;
-    //cout << "prepa finito" << endl;
-    //for (auto l : List) {
-    //    cout << l.size() << endl;
-    //}
-    //vector<vector<int>> F = { {0} };
-    //return F;
     return check_cell(coord, List, C, K, K_max, m, n, env, Q, result, axes);
 }

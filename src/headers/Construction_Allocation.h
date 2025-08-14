@@ -19,6 +19,6 @@ vector<Eigen::VectorXd> gen_C_Alloc_1(Eigen::MatrixXd& W, int bound, int m, int 
 // generate all element in c in Cone (W) with infinity norm less than bound
 Eigen::MatrixXd Allocation_expansion(Eigen::MatrixXd& W, int& m, int& n);
 //// generates the new matrix going from the question Wx<=b to W'x'=b
-int Main_alloc(vector< vector<int>>& Utility, int m, int n, Eigen::VectorXd& N);
+double Main_alloc(vector< vector<int>>& Utility, int m, int n, Eigen::VectorXd& N);
 //solve the fair allocation problem 
 #endif
