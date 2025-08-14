@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "gurobi_c++.h"
 #include <chrono>
+#include <ciso646>
 #include <fstream>
 #include <cmath>
 #include <Eigen/Dense>
@@ -18,7 +19,6 @@ Eigen::RowVectorXd Hyperplan_def(size_t const m, size_t const n, Eigen::MatrixXd
     for (size_t k = 0; k < m - 1; ++k) {
         W2.col(k) = W.col(coord[k]);
     }
-    //cout << W2 << endl<< endl;
     Eigen::RowVectorXd rows(m + 1);
     rows(0) = 0;
     int test_pos = 0;// This is to check if perhaps the hyperplane we find is useless because there is elements of cone(W) on both sides
@@ -28,7 +28,6 @@ Eigen::RowVectorXd Hyperplan_def(size_t const m, size_t const n, Eigen::MatrixXd
         int val = 0;
         if (i == 0) {
             W3 << W2.block(1, 0, m - 1, m - 1);
-            // cout << "x_1* " << W3.determinant() << endl;
             val = W3.determinant();
             rows(0, i + 1) = val;
             negative = true;
@@ -36,13 +35,11 @@ Eigen::RowVectorXd Hyperplan_def(size_t const m, size_t const n, Eigen::MatrixXd
         else if (i == m - 1) {
             if (negative) {
                 W3 << W2.block(0, 0, m - 1, m - 1);
-                //cout << "x_" << i + 1 << "*" << -W3.determinant() << endl;
                 val = -W3.determinant();
                 rows(0, i + 1) = val;
             }
             else {
                 W3 << W2.block(0, 0, m - 1, m - 1);
-                //cout << "x_" << i + 1 << "*" << W3.determinant() << endl;
                 val = W3.determinant();
                 rows(0, i + 1) = val;
             }
@@ -50,15 +47,12 @@ Eigen::RowVectorXd Hyperplan_def(size_t const m, size_t const n, Eigen::MatrixXd
         else {
             if (negative) {
                 W3 << W2.block(0, 0, i, m - 1), W2.block(i + 1, 0, m - 1 - i, m - 1);
-                //cout << W3 << endl;
-                //cout << "x_" << i + 1 << "*" << -W3.determinant() << endl;
                 val = -W3.determinant();
                 rows(0, i + 1) = val;
                 negative = false;
             }
             else {
                 W3 << W2.block(0, 0, i, m - 1), W2.block(i + 1, 0, m - 1 - i, m - 1);// 3 à remplacer par n-1 et 6 par m-1
-                //cout << "x_" << i + 1 << "*" << W3.determinant() << endl;
                 val = W3.determinant();
                 rows(0, i + 1) = val;
                 negative = true;
@@ -92,11 +86,11 @@ Eigen::RowVectorXd Hyperplan_def(size_t const m, size_t const n, Eigen::MatrixXd
             }
         }
     }
-    if (test_pos > 0) { // it meanse that the hyperplan is ax+by+...>=0
-        return -rows;//we want ax+by+...<=0
-    }
-    if (test_neg > 0) {
+    if (test_pos > 0) { // it means that the hyperplan is ax+by+...>=0
         return rows;
+    }
+    if (test_neg > 0) {// it means that the hyperplan is ax+by+...<=0
+        return -rows; // so -(ax+by+...)>=0
     }
     else {
         return null_vect;
@@ -135,9 +129,12 @@ vector<int> cone_W(const int n, const int m, const GRBEnv& env, vector<vector<do
                     break;
                 }
             }
-            if (not(InIneq)) {
+            if (!(InIneq)) {
                 Ineq.push_back(ineq);
-                GRBLinExpr constraint = -1;// we want to add the constraint ax+by+cz>=1
+                ineq = -ineq; 
+                GRBLinExpr constraint = -1;
+                //we know that the hyperplane is ax + by + ... >= 0 for a counter example outside we want ax+by+...<=-1
+                // so -(ax+by+...)-1>=0
                 for (size_t k = 0; k < m; ++k) {
                     constraint += (ineq[k + 1] * vars[k]);
                 }
@@ -148,10 +145,10 @@ vector<int> cone_W(const int n, const int m, const GRBEnv& env, vector<vector<do
                     model.remove(c);
                 }
                 else if (model.get(GRB_IntAttr_SolCount) > 0) { // We have found a counter example
-                    //cout << "The counter example is: ";
+                    cout << "The counter example is: ";
                     vector<int> counter;
                     for (size_t i = 0; i < m; ++i) {
-                        //cout << vars[i].get(GRB_DoubleAttr_X) << " ";
+                        cout << vars[i].get(GRB_DoubleAttr_X) << " ";
                         counter.push_back(vars[i].get(GRB_DoubleAttr_X));
                     }
                     return counter;
@@ -159,12 +156,43 @@ vector<int> cone_W(const int n, const int m, const GRBEnv& env, vector<vector<do
                 }
             }
         }
-        else {
-            //cout << "pas content" << endl;
-        }
-    } while (not (coord_spe_W(n, m - 1, coord)));
+    } while (! (coord_spe_W(n, m - 1, coord)));
     return vector<int>(0, m);
 }
+
+//void Q_in_cone_W(const int m, vector<vector<double>>& Q, Eigen::MatrixXd W) {
+//    int nb = 0;
+//    vector<Eigen::RowVectorXd> Ineq;
+//    vector<int> coord;
+//    for (int i = 0; i < m - 1; ++i) {
+//        coord.push_back(i);
+//    }
+//    do {
+//        Eigen::RowVectorXd ineq;
+//        ineq = Hyperplan_def(m, m, W, coord);
+//        if (ineq != Eigen::RowVectorXd::Zero(m + 1)) {
+//            //cout << ineq << endl;
+//            bool InIneq = false;
+//            for (auto const in : Ineq) {
+//                if (in == ineq) {// We check that the inequality defining the hyperplan haven't already been added 
+//                    InIneq = true;
+//                    break;
+//                }
+//            }
+//            if (!(InIneq)) {
+//                Ineq.push_back(ineq);
+//                //cout << "we add the ineq: ";
+//                vector<double> q_ineq(m+1);// we want to add this inequality to Q in order to have Q in the cone(W)
+//                for (int i = 0; i < m +1; ++i) {
+//                    q_ineq[i] = ineq(i);
+//                    //cout << ineq(i) << "*x" << i << " + ";
+//                }
+//                //cout << endl;
+//                Q.push_back(q_ineq);
+//            }
+//        }
+//    } while (! (coord_spe_W(m, m - 1, coord)));
+//}
 
 Eigen::MatrixXd matrix_expansion(Eigen::MatrixXd& W, int& m, int& n) {
     Eigen::MatrixXd test(m, 2 *n + m);
@@ -199,8 +227,7 @@ vector<Eigen::VectorXd> find_P(vector<vector<double>>& Parall, int m) {
     vector<Eigen::VectorXd> solutions;
     while (true) {
         model.optimize();
-        if (model.get(GRB_IntAttr_Status) != GRB_OPTIMAL) {
-            std::cout << "Plus de solutions optimales trouvées." << std::endl;
+        if (model.get(GRB_IntAttr_Status) != GRB_OPTIMAL) {// there is no more solutions
             break;
         }
         Eigen::VectorXd solution;
@@ -209,7 +236,7 @@ vector<Eigen::VectorXd> find_P(vector<vector<double>>& Parall, int m) {
             solution(j) = vars[j].get(GRB_DoubleAttr_X);
         }
         solutions.push_back(solution);
-        // Ajout d'une contrainte pour exclure cette solution
+        // We add a constraint to be sure not to obtain the same one again
         GRBQuadExpr expr1 = 0;
         for (size_t k = 0; k < m; ++k) {
             expr1 += (vars[k] - solution(k)) * (vars[k] - solution(k));
@@ -219,7 +246,7 @@ vector<Eigen::VectorXd> find_P(vector<vector<double>>& Parall, int m) {
     return solutions;
 }
 
-vector<Eigen::VectorXd> parallelograme(size_t const m, Eigen::MatrixXd const& W, vector<vector<double>>& Q) {
+vector<Eigen::VectorXd> parallelogram(size_t const m, Eigen::MatrixXd const& W, vector<vector<double>>& Q) {
     vector<vector<double>> Parall(2 * m, vector<double>(m + 1, 0));//je connais déjà la taille
     Eigen::MatrixXd paral(2 * m, m + 1);
     Eigen::MatrixXd W3(m - 1, m - 1);
@@ -292,22 +319,19 @@ vector<Eigen::VectorXd> parallelograme(size_t const m, Eigen::MatrixXd const& W,
             for (size_t k = 1; k < m + 1; ++k) {
                 //cout << k;
                 Parall[2 * j][k] = rows(0, k);
-                Parall[2 * j + 1][k] = -rows(0, k);// on veut row(0,1)*x_1+...<7 donc 7-row(0,1)*x_1-...>0
+                Parall[2 * j + 1][k] = -rows(0, k);
             }
-            Q.push_back(Parall[2 * j]);
+            Q.push_back(Parall[2 * j]);// for Q to be in cone(W)
         }
         else if (tot < 0) {
             Parall[2 * j][0] = 0;
             Parall[2 * j + 1][0] = -(tot+1);
             for (size_t k = 1; k < m + 1; ++k) {
                 //cout << k;
-                Parall[2 * j][k] = -rows(0, k);// on veut row(0,1)*x_1+...<0 so -row(0,1)*x_1-...>0
-                Parall[2 * j + 1][k] = rows(0, k);// on veut row(0,1)*x_1+...>tot donc -(tot+1)+row(0,1)*x_1-...>0
+                Parall[2 * j][k] = -rows(0, k);// we want row(0,1)*x_1+...<0 so -row(0,1)*x_1-...>0
+                Parall[2 * j + 1][k] = rows(0, k);
             }
-            Q.push_back(Parall[2 * j]);
-        }
-        else {
-            cout << "WTF";
+            Q.push_back(Parall[2 * j]);// for Q to be in cone(W)
         }
 
     }
@@ -368,64 +392,93 @@ int Square_Matrices(Eigen::MatrixXd& W, vector<vector<double>>& Q, vector<Eigen:
         for (size_t i = 0; i < m; ++i) {
             W_square.col(i) = W.col(coord[i]);
         }
-        //cout <<"W_primes="<<W_primes<<endl;
-        if ((W_square.determinant() == 0) or (W_square.determinant() == 1) or (W_square.determinant() == -1)) {
-            //cout << "on est ici" << endl;
+        //cout<<endl<< W_square;
+        if ((W_square.determinant() == 0) || (W_square.determinant() == 1) || (W_square.determinant() == -1)) {
         }
         else {
             vector< Eigen::VectorXd > new_C;
             vector<Eigen::VectorXd> P;
             Eigen::MatrixXd W_inv(m, m);
             W_inv = W_square.inverse();
+            //cout <<endl<< W_inv;
             vector<vector<double>> Q1=Q;// we make a copie because we are going to modify Q1
-            //cout << "on rentre dans para";
-            P = parallelograme(m,W_square,Q1);
-            //cout << "P size=" << P.size();
+            //Q_in_cone_W(m, Q1, W_square);
+            P = parallelogram(m,W_square,Q1);
             for (auto const p : P) {
+                //cout <<endl<< "p=" << p;
                 if (p != null_vect) {
                     new_C = solve_17(C, W_square, W_inv, p, m);
                     vector<vector<double>> new_Q;
-                    new_Q = Image_Q(Q, W_square, p, m);
-                    vector<int> coord1(m, 0);
-                    vector<int> result(m, 0);
-                    vector<vector<int>> fin;
-                    fin = Solve6(new_C, new_Q, m, coord1, env, result);
-                    if (fin[0][0] == 1) {
-                        Eigen::VectorXd result1(m);
-                        for (int i = 0; i < m; ++i) {
-                            result1(i) = result[i];
-                        }
-                        result1 = W_square * result1;
-                        result1 += p; // in order to have the real b
-                        GRBModel model1 = GRBModel(env);
-                        model1.set(GRB_IntParam_OutputFlag, 0);
-                        std::vector<GRBVar> vars1(n);
-                        for (size_t j = 0; j < n; ++j) {
-                            vars1[j] = model1.addVar(0, GRB_INFINITY, 0.0, GRB_INTEGER, "x_" + std::to_string(j));
-                        }
-                        for (size_t j = 0; j < m; ++j) {
-                            GRBLinExpr expr = 0;
-                            int nb=0;
-                            for (size_t k = 0; k < n; ++k) {
-                                expr += W(j, k) * vars1[k];
-                            }
-                            model1.addConstr(expr <= result[j]);
-                            nb += 1;
-                        }
-                        model1.optimize();
-                        int status2 = model1.get(GRB_IntAttr_Status);
-                        if (status2 == GRB_INFEASIBLE) {
-                            cout << "it is indeed a counter example";
-                        }
-                        else {
-                            cout << "weird";
-                        }
+                    new_Q = Image_Q(Q1, W_square, p, m);
+                    GRBModel model = GRBModel(env);
+                    std::vector<GRBVar> vars(m);
+                    for (size_t i = 0; i < m; ++i) {
+                        vars[i] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0.0, GRB_CONTINUOUS, "x_" + std::to_string(i)); // continuous variables
                     }
-                    cout << endl;
+                    model.set(GRB_IntParam_OutputFlag, 0);
+                    int nb = 0;
+                    for (auto const& q : new_Q) {
+                        GRBLinExpr expr = q[0];
+                        for (size_t k = 0; k < m; ++k) {
+                            expr += (q[k + 1] * vars[k]);
+                        }
+                        model.addConstr(expr >= 0, "Q_constraint_" + std::to_string(nb));// here we add the constraint that defines Q
+                        nb += 1;
+                    }
+                    model.optimize();
+                    int status0 = model.get(GRB_IntAttr_Status);
+                    if (status0 == GRB_OPTIMAL) {
+                        vector<int> coord1(m, 0);
+                        vector<int> result(m, 0);
+                        vector<vector<int>> fin;
+                        //cout << endl << "on rentre dans solve_6";
+                        int nb_cell = 0;
+                        fin = Solve6(new_C, new_Q, m, coord1, env, result, nb_cell);
+                        //cout << endl << "on sort dans solve_6";
+                        if (fin[0][0] == 1) {
+                            Eigen::VectorXd result1(m);
+                            for (int i = 0; i < m; ++i) {
+                                result1(i) = result[i];
+                            }
+                            result1 = W_square * result1;
+                            result1 += p; // in order to have the real b
+                            GRBModel model1 = GRBModel(env);
+                            model1.set(GRB_IntParam_OutputFlag, 0);
+                            std::vector<GRBVar> vars1(n);
+                            for (size_t j = 0; j < n; ++j) {
+                                vars1[j] = model1.addVar(0, GRB_INFINITY, 0.0, GRB_INTEGER, "x_" + std::to_string(j));
+                            }
+                            for (size_t j = 0; j < m; ++j) {
+                                GRBLinExpr expr = 0;
+                                int nb = 0;
+                                for (size_t k = 0; k < n; ++k) {
+                                    expr += W(j, k) * vars1[k];
+                                }
+                                model1.addConstr(expr <= result[j]);
+                                nb += 1;
+                            }
+                            model1.optimize();
+                            int status2 = model1.get(GRB_IntAttr_Status);
+                            if (status2 == GRB_INFEASIBLE) {
+                                cout << "it is indeed a counter example";
+                            }
+                            else {
+                                cout << "weird";
+                            }
+                        }
+                        cout << endl;
+                    }
+                    else if (status0 == GRB_INFEASIBLE) {
+                        // we just go to the next step
+                    }
+                    else {
+                        cout << "Gurobi isn't working correctly on Q";
+                    }
                 }
             }
         }
-    } while (not (coord_spe_W(n, m, coord)));
+    } while (! (coord_spe_W(n, m, coord)));
+    cout << " There is no counterexample";
     return 0;
 }
 
@@ -434,9 +487,11 @@ int Main(vector<vector<double>>& Q, Eigen::MatrixXd& W,int n, int m) {
     env.set(GRB_IntParam_InfUnbdInfo, 1);
     env.start();
     vector<int> result;
+    Eigen::MatrixXd W_2;
+    W_2 = Allocation_expansion(W, m, n);
+    int n_2 = n + m;
     W = matrix_expansion(W, m, n);
     n = 2 * n + m;
-    cout << W;
     result = cone_W(n, m, env,Q, W);
     if (result != vector<int>(0, m)) {
         cout << endl << "The counter example is" << endl;
@@ -447,9 +502,14 @@ int Main(vector<vector<double>>& Q, Eigen::MatrixXd& W,int n, int m) {
 
     }
     vector<Eigen::VectorXd> C;
-    int bound;
-    bound = max_det_sub_mat(n, m, W)* (W.cwiseAbs().rowwise().sum()).maxCoeff()*(n-m);
-    Eigen::VectorXd Max = W.cwiseAbs().rowwise().maxCoeff();
+    long long int Delta = W.cwiseAbs().maxCoeff();// the max abs value of W
+    long long int inf_norm= (W.cwiseAbs().rowwise().sum()).maxCoeff(); //the infinity norm of W
+    long long int bound = max_det_sub_mat(n_2, m, W_2)* inf_norm*(n-m);//we do it on W_2 bcs the abs val of sub det of (W Id) is the same as the abs val of the sub det of (W -W Id)
+    long long int  bound_2 = inf_norm*m*pow(2*m*Delta+1,m);
+    if (bound > bound_2) {// we compare the two bounds
+        bound = bound_2;
+    }
+    Eigen::VectorXd Max = W_2.cwiseAbs().rowwise().maxCoeff();// Max[i] contain the biggest max_j(W(i,j))
     C = gen_C_5(W, Max, bound, m, n);
     Square_Matrices(W, Q, C, m, n, env);
     return 0;
