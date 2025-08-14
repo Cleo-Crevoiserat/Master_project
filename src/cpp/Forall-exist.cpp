@@ -11,103 +11,69 @@
 #include "Solve_6.h"
 using namespace std;
 
-int maineeed() {
+int main(int argc, char* argv[]) {
     try {
+        if (argc < 2) {
+            cerr << "Usage:\n";
+            cerr << "  " << argv[0] << " 0 m n W_values... nbQ Q_values...\n";
+            cerr << "  " << argv[0] << " 1 nb_agent nb_object N_values... Utility_values...\n";
+            return 1;
+        }
+
         GRBEnv env = GRBEnv(true);
         env.set(GRB_IntParam_InfUnbdInfo, 1);
         env.start();
 
-        int prob;
-        cout << "Chose the type of problem you want to solve (0 = Wx<=b, 1 = Fair Allocation) : ";
-        cin >> prob;
+        int prob = stoi(argv[1]);
+        int argIndex = 2; // where we are in argv
 
-        if (prob == 0) { // Case Wx <= b
-            int m, n;
-            cout << "Number of rows (m) : ";
-            cin >> m;
-            cout << "Number of columns (n) : ";
-            cin >> n;
+        if (prob == 0) {
+            // Wx <= b case
+            int m = stoi(argv[argIndex++]);
+            int n = stoi(argv[argIndex++]);
 
             Eigen::MatrixXd W(m, n);
-            //cout << "Entrer les éléments de la matrice W (" << m << "x" << n << ") :\n";
-            for (int i = 0; i < m; i++) {
-                if (i == 0) {
-                    cout << " Enter the coefficients of the first row of W : " << endl;
-                }
-                else if (i == 1) {
-                    cout << " Enter the coefficients of the second row of W : " << endl;
-                }
-                else if (i == 2) {
-                    cout << " Enter the coefficients of the third row of W : " << endl;
-                }
-                else {
-                    cout << " Enter the coefficients of the " << i + 1 << "-th row of W : " << endl;
-                }
-                for (int j = 0; j < n; j++) {
-                    cin >> W(i, j);
-                }
-            }
+            for (int i = 0; i < m; i++)
+                for (int j = 0; j < n; j++)
+                    W(i, j) = stod(argv[argIndex++]);
 
-            int nbQ;
-            cout << "Number of inequalities defining Q : ";
-            cin >> nbQ;
-
-            vector<vector<double>> Q(nbQ, vector<double>(n + m));
-            //cout << "Enter les " << nbQ << " vecteurs Q (taille " <<  m+ 1 << " chacun) :\n";
-            for (int i = 0; i < nbQ; i++) {
-                if (i == 0) {
-                    cout << " Enter the coefficients of the first inequality defining Q : " << endl;
-                }
-                else if (i == 1) {
-                    cout << " Enter the coefficients of the second inequality defining Q : " << endl;
-                }
-                else if (i == 2) {
-                    cout << " Enter the coefficients of the third inequality defining Q : " << endl;
-                }
-                else {
-                    cout << " Enter the coefficients of the " << i + 1 << "-th inequality defining Q : "<<endl;
-                }
-                for (int j = 0; j < m+1; j++) {
-                    cin >> Q[i][j];
-                }
-            }
+            int nbQ = stoi(argv[argIndex++]);
+            vector<vector<double>> Q(nbQ, vector<double>(m + 1));
+            for (int i = 0; i < nbQ; i++)
+                for (int j = 0; j < m + 1; j++)
+                    Q[i][j] = stod(argv[argIndex++]);
 
             Main(Q, W, n, m);
         }
-
-        else if (prob == 1) { // Cas Fair Allocation
-            int nb_agent, nb_object;
-            cout << "Number of agents : ";
-            cin >> nb_agent;
-            cout << "Number of type of objects : ";
-            cin >> nb_object;
+        else if (prob == 1) {
+            // Fair allocation case
+            int nb_agent = stoi(argv[argIndex++]);
+            int nb_object = stoi(argv[argIndex++]);
 
             Eigen::VectorXd N(nb_object);
-            cout << "Number of items per type of objects: ";
-            for (int i = 0; i < nb_object; i++) {
-                cin >> N(i);
-            }
+            for (int i = 0; i < nb_object; i++)
+                N(i) = stod(argv[argIndex++]);
 
             vector<vector<int>> Utility(nb_agent, vector<int>(nb_object));
-            for (int i = 0; i < nb_agent; i++) {
-                cout << "Enter the utility function of agent " << i+1<<" :\n";
-                for (int j = 0; j < nb_object; j++) {
-                    cin >> Utility[i][j];
-                }
-            }
-            int nb_cell = 0;
+            for (int i = 0; i < nb_agent; i++)
+                for (int j = 0; j < nb_object; j++)
+                    Utility[i][j] = stoi(argv[argIndex++]);
+
             Main_alloc(Utility, nb_object, nb_agent, N);
         }
-
         else {
-            cout << "Choix invalide.\n";
+            cerr << "Invalid problem type.\n";
+            return 1;
         }
     }
     catch (GRBException& e) {
-        cout << "Erreur Gurobi : " << e.getMessage() << endl;
+        cerr << "Gurobi error: " << e.getMessage() << endl;
+    }
+    catch (exception& e) {
+        cerr << "Error: " << e.what() << endl;
     }
     catch (...) {
-        cout << "Erreur inconnue." << endl;
+        cerr << "Unknown error.\n";
     }
 
     return 0;
