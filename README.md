@@ -23,7 +23,7 @@ In the `main()`:
 2. Define matrix dimensions `m`, `n`
 3. Initialize matrix $W$ using Eigen.  
  Example:  
-  ![Matrice exemple](matrice_exemple.png)
+  ![Matrice exemple](docs/images/matrice_exemple.png)
 ```cpp
 W << 1, 2,
      3, 6,
@@ -61,3 +61,28 @@ Each agent's utility is defined per object type.
 ## 📎 Notes
 
 - The code leverages Gurobi for solving ILPs; make sure your environment is correctly configured.
+
+## Structure
+### Code
+Everything related to code is in the `src` folder. This includes `.cpp` files and their headers as well as the compiled exectutable scripts.
+
+The script `Forall-exist.exe` enables to deploy the tools we developed in the project to solve both a fair allocation and forall-exists statement.
+
+### Docs
+The images used in the readme are in the `images` folder.
+
+
+## Running code
+If you want to directy run the program, you can simply use the compiled `.exe` file. Navigate to the `src` folder and run the following command:
+
+```sh
+Forall-exist.exe <problem_type> <size> 2  1 1  0 0 1 1
+```
+## Compiling C++ code
+If you need to modify the code or re-compile it for some reason, you can navigate to the `src` folder and run something along the line.
+
+```sh
+cl /EHsc /MD /std:c++17 /Iheaders /I"C:\gurobi1103\win64\include" /I"C:\Libraries\eigen-3.4.0" cpp\Forall_Exist.cpp cpp\Construction_Allocation.cpp cpp\Construction_Part_1.cpp cpp\Solve_6.cpp cpp\Useful_fct.cpp C:\gurobi1103\win64\lib\gurobi110.lib C:\gurobi1103\win64\lib\gurobi_c++md2017.lib /FeForall-exist.exe && Forall-exist.exe
+```
+
+*Note: On windows, you might want to run the command on a `x64 Native Tools Command Prompt` to be able to run `cl`.*

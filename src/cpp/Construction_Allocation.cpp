@@ -10,7 +10,6 @@
 #include "Useful_fct.h"
 #include "Solve_6.h"
 #include "Construction_Part_1.h"
-#include "Solve_6_4.h"
 using namespace std;
 
 vector<vector<double>> Q_create(const int& n, const int& m, Eigen::VectorXd& N, vector<vector<int>>& Utility) {
