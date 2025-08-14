@@ -249,38 +249,18 @@ double Main_alloc(vector< vector<int>>& Utility, int m, int n, Eigen::VectorXd& 
     Eigen::MatrixXd W2 = Allocation_expansion(W, m_1, n_1);
     long long int Delta = W.cwiseAbs().maxCoeff();// the max abs value of W
     long long int inf_norm = (W.cwiseAbs().rowwise().sum()).maxCoeff(); //the infinity norm of W
-    long long int hadamard = sqrt(pow(2 * Delta, 2) + 1);// the hadamard inequality for Delta_m in order to be faster
-    cout << "hadamard =" << hadamard;
-    long long int  bound_2 = inf_norm * m * pow(2 * m * Delta + 1, m);// previous bound
+    //long long int hadamard = sqrt(pow(2 * Delta, 2) + 1);// the hadamard inequality for Delta_m in order to be faster
+    //long long int bound = max_det_sub_mat_alloc(n, m, W2) * inf_norm * n_1;//(n-m)=(M + N+ 1 + N * M-M+N+1)
+    //long long int  bound_2 = inf_norm * m * pow(2 * m * Delta + 1, m);// previous bound
     bool check =false;
     int new_method = 1;
     int facto = factorial(n - 1);
     for (int i = 0; i < m; ++i) {
         new_method = (new_method * factorial(n - 1 + N(i)) / factorial(N(i))) / facto;// the number of point that have to be generated
     }
-    cout << "new_method=" << new_method;
-    if (new_method < bound_2) {
-        cout << "bound_2 =" << bound_2;
-        for (int i = 0; i < (n + m + 1); ++i) {
-            cout << "hadamard =" << hadamard;
-            if (hadamard > new_method) {
-                check = true;
-                break;
-            }
-            hadamard *= hadamard;
-        }
-        if (not check) {
-            hadamard *= inf_norm * (n - m);
-            for (int i = 0; i < (n + m + 1); ++i) {
-                if (hadamard > new_method) {
-                    check = true;
-                    break;
-                }
-                hadamard *= hadamard;
-            }
-        }
-    }
-    if ((true) or (check)) {// we will have to do less operations
+    //hadamard = pow(hadamard, m + n + 1);
+    //hadamard *= inf_norm * (n - m);
+    if ((true)) {// we will have to do less operations // we could compare new_method to bound^(m+n+1) or even to hadamard^n+m+1 for faster purposes
         Q = Q_create(n, m, N, Utility);
         vector<Eigen::VectorXd> C;
         C = gen_C_Alloc(W, N, m_1, n_1, n, m);
@@ -364,7 +344,8 @@ double Main_alloc(vector< vector<int>>& Utility, int m, int n, Eigen::VectorXd& 
     }
     else {
         Q = Q_create_case_2(n, m, N, Utility);
-        long long int bound = max_det_sub_mat_alloc(n, m, W2)*inf_norm*n_1;//(n-m)=(M + N+ 1 + N * M-M+N+1)
+        long long int bound = max_det_sub_mat_alloc(n, m, W2) * inf_norm * n_1;//(n-m)=(M + N+ 1 + N * M-M+N+1)
+        long long int  bound_2 = inf_norm * m * pow(2 * m * Delta + 1, m);// previous bound
         vector<double> Time;
         auto start = std::chrono::high_resolution_clock::now();
         vector<int> result;
