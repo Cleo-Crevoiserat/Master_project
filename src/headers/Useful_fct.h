@@ -27,7 +27,7 @@ bool coord_spe_gen_C(Eigen::VectorXd& coord, size_t direction, size_t& face_nb, 
 //generate the coordonates of the different point that could be in C for a face which is bounded
 bool Around_faces_C(Eigen::VectorXd& coord, size_t direction, size_t& face_nb, Eigen::VectorXd& Max, int born, size_t m);
 //go through every faces 
-vector<Eigen::VectorXd> gen_C_5(Eigen::MatrixXd W, Eigen::VectorXd& Max, int bound, int m, int n);
+vector<Eigen::VectorXd> gen_C(Eigen::MatrixXd W, Eigen::VectorXd& Max, int bound, int m, int n);
 //Generate all elements in C
 int factorial(int n);
 // compute n!

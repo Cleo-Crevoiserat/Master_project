@@ -280,7 +280,7 @@ bool Around_faces_C(Eigen::VectorXd& coord, size_t direction, size_t& face_nb, E
     }
 }
 
-vector<Eigen::VectorXd> gen_C_5(Eigen::MatrixXd W, Eigen::VectorXd& Max, int bound, int m, int n) {
+vector<Eigen::VectorXd> gen_C(Eigen::MatrixXd W, Eigen::VectorXd& Max, int bound, int m, int n) {
     vector<Eigen::VectorXd> C_1;
     int w = 0;
     int tot = 0;

@@ -459,7 +459,7 @@ int Main(vector<vector<double>>& Q, Eigen::MatrixXd& W,int n, int m) {
         bound = bound_2;
     }
     Eigen::VectorXd Max = W_2.cwiseAbs().rowwise().maxCoeff();// Max[i] contain the biggest max_j(W(i,j))
-    C = gen_C_5(W, Max, bound, m, n);
+    C = gen_C(W, Max, bound, m, n);
     Square_Matrices(W, Q, C, m, n, env);
     return 0;
 }
