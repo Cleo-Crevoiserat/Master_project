@@ -988,6 +988,8 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                 }
                 return{ {1},{0} };
             }
+            else if (status == 4) {// unbounded or infeasible but we know that it can't be unbounded so we are good
+            }
             else {
                 cout << endl << " something weird is happening in Q at the start" << endl;
                 for (size_t i = 0; i < m; ++i) {// gives the position where it happens
@@ -1112,8 +1114,10 @@ vector<vector<int>> Solve6(vector<Eigen::VectorXd>& C, vector<vector<double>>& Q
                         }
                         return{ {1},{0} };
                     }
+                    else if (status == 4) {// unbounded or infeasible but we know that it can't be unbounded so we are good
+                    }
                     else {
-                        cout << endl << " something weird is happening in Q at the start" << endl;
+                        cout << endl << " something weird is happening in Q at the start 2" << endl;
                         for (size_t i = 0; i < m; ++i) {// gives the position where it happens
 
                         }
